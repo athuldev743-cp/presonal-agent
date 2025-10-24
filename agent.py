@@ -1,10 +1,18 @@
 # agent.py
+import os
+from dotenv import load_dotenv
 from openai import OpenAI
-from tools import calculator, web_search, health, weather
+from tools import calculator, web_search, health, weather, other_tools
 from memory.memory import conversation_memory, remember, recall
 
-# Initialize OpenAI client
-client = OpenAI(api_key="YOUR_OPENAI_API_KEY")  # replace with your actual key
+# === Load environment variables ===
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OpenAI API key not found in environment variables")
+
+# === Initialize OpenAI client ===
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 def process_command(command: str):
     cmd = command.lower()
@@ -35,10 +43,32 @@ def process_command(command: str):
         return response
 
     elif "weather" in cmd:
-        city = command.lower().replace("weather in", "").strip()
+        city = command.replace("weather in", "").strip()
         if not city:
             return "Please tell me the city name, e.g., 'weather in London'"
         response = weather.get_weather(city)
+        remember(command, response)
+        return response
+
+    elif "open website" in cmd:
+        site = command.replace("open website", "").strip()
+        response = other_tools.open_website(site)
+        remember(command, response)
+        return response
+
+    elif "play music" in cmd:
+        path = command.replace("play music", "").strip()
+        response = other_tools.play_music(path)
+        remember(command, response)
+        return response
+
+    elif "shutdown" in cmd:
+        response = other_tools.shutdown_pc()
+        remember(command, response)
+        return response
+
+    elif "joke" in cmd:
+        response = other_tools.say_joke()
         remember(command, response)
         return response
 
@@ -53,15 +83,14 @@ def process_command(command: str):
 
         try:
             response_obj = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini",  # or gpt-4
                 messages=messages,
-                max_tokens=200
+                max_tokens=250
             )
-
-            # Access the content safely
+            # Modern API v1.0+ access
             chat_choice = response_obj.choices[0]
             if hasattr(chat_choice, "message"):
-                response = chat_choice.message.content
+                response = chat_choice.message["content"]
             else:
                 response = str(chat_choice)
 

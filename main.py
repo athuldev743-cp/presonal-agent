@@ -3,8 +3,8 @@ from speech_io import listen_command, speak
 from agent import process_command
 
 def main():
-    speak("Hi sir, How can I help you today?")
-    
+    speak("Hi sir, how can I help you today?")
+
     while True:
         command = listen_command()
         if not command:

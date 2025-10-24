@@ -8,14 +8,14 @@ app = FastAPI(title="Jarvis AI API")
 
 # === CORS Configuration ===
 origins = [
-    "https://personal-ai-front.vercel.app",  # Your frontend URL
-    "http://127.0.0.1:5500",                 # VS Code Live Server
-    "http://localhost:5500"                  # Local testing
+    "https://personal-ai-front.vercel.app",  # frontend deployed on Vercel
+    "http://127.0.0.1:5500",                 # local testing (Live Server)
+    "http://localhost:5500"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,      # Only allow these origins in production
+    allow_origins=origins,   # you can use ["*"] for testing only
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,8 +29,7 @@ class Command(BaseModel):
 @app.post("/ask")
 async def ask_jarvis(cmd: Command):
     """
-    Receive a command from the frontend, process it using agent.py,
-    and return the response.
+    Receive a command from frontend, process with agent.py, return response.
     """
     try:
         response = process_command(cmd.text)
