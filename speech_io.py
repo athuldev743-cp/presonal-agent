@@ -1,32 +1,25 @@
-import speech_recognition as sr
-import pyttsx3
+import re
+import pyttsx3  # or whichever TTS you use
 
-recognizer = sr.Recognizer()
 engine = pyttsx3.init()
-engine.setProperty("rate", 160)
-voices = engine.getProperty("voices")
-engine.setProperty("voice", voices[0].id)  # Choose a voice
 
 def speak(text):
-    print(f"🤖 Jarvis: {text}")
-    engine.say(text)
+    clean_text = clean_for_speech(text)
+    engine.say(clean_text)
     engine.runAndWait()
 
-def listen_command(timeout=5, phrase_time_limit=5):
-    try:
-        with sr.Microphone() as source:
-            recognizer.adjust_for_ambient_noise(source, duration=1)
-            print("🎧 Listening...")
-            audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
-            text = recognizer.recognize_google(audio)
-            print(f"🗣️ You said: {text}")
-            return text
-    except sr.WaitTimeoutError:
-        print("❌ Listening timed out. Please speak faster.")
-        return ""
-    except sr.UnknownValueError:
-        print("❌ Could not understand audio.")
-        return ""
-    except Exception as e:
-        print(f"❌ Error: {str(e)}")
-        return ""
+def clean_for_speech(text):
+    """
+    Makes AI responses sound natural — removes punctuation and symbols.
+    """
+    # Remove URLs and slashes
+    text = re.sub(r"http\S+|www\S+|/|\\", " ", text)
+    # Replace punctuation with natural pauses
+    text = text.replace(".", "").replace(",", "").replace(":", "")
+    text = text.replace(";", "").replace("-", " ").replace("_", " ")
+    text = text.replace("(", "").replace(")", "")
+    # Remove emojis and symbols
+    text = re.sub(r"[^\w\s]", "", text)
+    # Compact multiple spaces
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()

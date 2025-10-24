@@ -7,3 +7,4 @@ def check_heart_rate(rate: int):
         return "Your heart rate is high, please relax."
     else:
         return "Your heart rate looks normal."
+

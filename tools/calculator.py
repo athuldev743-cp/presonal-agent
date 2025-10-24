@@ -39,7 +39,11 @@ def safe_eval(expr):
 def calculate(expression: str):
     try:
         exp = expression.lower().replace("calculate", "").strip()
-        result = safe_eval(exp)
+        # Optional safety — only allow numbers and math ops
+        allowed_chars = "0123456789+-*/.%() "
+        if not all(c in allowed_chars for c in exp):
+            return "Sorry, that looks unsafe to calculate."
+        result = eval(exp)
         return f"The answer is {result}"
     except Exception:
         return "Sorry, I couldn’t calculate that."
