@@ -1,0 +1,11 @@
+speechrecognition
+pyttsx3
+wikipedia
+faiss-cpu
+langchain
+openai
+python-dotenv
+ollama
+pyaudio
+requests
+uvicorn[standard]
