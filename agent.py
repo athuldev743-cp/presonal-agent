@@ -1,16 +1,15 @@
 # agent.py
-import openai
-from config import OPENAI_API_KEY
+from openai import OpenAI
 from tools import calculator, web_search, health, weather
 from memory.memory import conversation_memory, remember, recall
 
-
-openai.api_key = OPENAI_API_KEY
+# Initialize OpenAI client
+client = OpenAI(api_key="YOUR_OPENAI_API_KEY")  # replace with your actual key
 
 def process_command(command: str):
     cmd = command.lower()
 
-    # Tool logic
+    # === Built-in tools ===
     if "calculate" in cmd:
         response = calculator.calculate(command)
         remember(command, response)
@@ -43,19 +42,31 @@ def process_command(command: str):
         remember(command, response)
         return response
 
+    # === Chat with OpenAI ===
     else:
-        # Default → send to GPT model with memory context
-        prompt = ""
-        for user_cmd, resp in conversation_memory[-10:]:
-            prompt += f"User: {user_cmd}\nAssistant: {resp}\n"
-        prompt += f"User: {command}\nAssistant:"
+        # Prepare conversation context (last 10 interactions)
+        messages = []
+        for i, (user_cmd, resp) in enumerate(conversation_memory[-10:]):
+            messages.append({"role": "user", "content": user_cmd})
+            messages.append({"role": "assistant", "content": resp})
+        messages.append({"role": "user", "content": command})
 
-        completion = openai.ChatCompletion.create(
-            model="gpt-4o-mini",  # or gpt-3.5-turbo
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=200
-        )
+        try:
+            response_obj = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=200
+            )
 
-        response = completion.choices[0].message["content"]
+            # Access the content safely
+            chat_choice = response_obj.choices[0]
+            if hasattr(chat_choice, "message"):
+                response = chat_choice.message.content
+            else:
+                response = str(chat_choice)
+
+        except Exception as e:
+            response = f"❌ Jarvis AI: Error processing command: {str(e)}"
+
         remember(command, response)
         return response

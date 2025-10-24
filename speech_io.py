@@ -1,49 +1,74 @@
-import speech_recognition as sr
-import pyttsx3
+# agent.py
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+from tools import calculator, web_search, health, weather
+from memory.memory import conversation_memory, remember, recall
 
-recognizer = sr.Recognizer()
-engine = pyttsx3.init()
+# Load environment variables from .env
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OpenAI API key not found in environment variables")
 
-engine.setProperty('rate', 150)
-engine.setProperty('volume', 1.0)
+# Initialize OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-def get_default_microphone_index():
-    """Return the index of the default working microphone."""
-    mic_list = sr.Microphone.list_microphone_names()
-    for i, name in enumerate(mic_list):
-        if "Realtek" in name or "Microphone" in name:
-            return i
-    # fallback
-    return 0
+def process_command(command: str):
+    cmd = command.lower()
 
-MIC_INDEX = get_default_microphone_index()
+    # === Built-in tools ===
+    if "calculate" in cmd:
+        response = calculator.calculate(command)
+        remember(command, response)
+        return response
 
-def listen_command():
-    """Listen to user via microphone and return text."""
-    try:
-        with sr.Microphone(device_index=MIC_INDEX) as source:
-            print(f"🎧 Listening using mic index {MIC_INDEX}...")
-            recognizer.adjust_for_ambient_noise(source, duration=0.5)
-            # Wait max 5 seconds for speech to start
-            audio = recognizer.listen(source, timeout=5, phrase_time_limit=8)
-            text = recognizer.recognize_google(audio)
-            print(f"🗣️ You said: {text}")
-            return text
-    except sr.WaitTimeoutError:
-        print("❌ No speech detected, timed out.")
-        return ""
-    except sr.UnknownValueError:
-        print("❌ Sorry, I did not understand that.")
-        return ""
-    except sr.RequestError:
-        print("❌ Could not request results from Google Speech Recognition service.")
-        return ""
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return ""
+    elif "tell me about" in cmd:
+        response = web_search.search_wikipedia(command)
+        remember(command, response)
+        return response
 
-def speak(text):
-    """Speak text using pyttsx3."""
-    print(f"🤖 Jarvis: {text}")
-    engine.say(text)
-    engine.runAndWait()
+    elif "heart rate" in cmd:
+        try:
+            rate = int(cmd.split()[-1])
+            response = health.check_heart_rate(rate)
+        except:
+            response = "Please provide the heart rate as a number."
+        remember(command, response)
+        return response
+
+    elif "recall" in cmd:
+        query = command.replace("recall", "").strip()
+        response = recall(query)
+        return response
+
+    elif "weather" in cmd:
+        city = command.lower().replace("weather in", "").strip()
+        if not city:
+            return "Please tell me the city name, e.g., 'weather in London'"
+        response = weather.get_weather(city)
+        remember(command, response)
+        return response
+
+    # === Chat with OpenAI ===
+    else:
+        # Prepare conversation context (last 10 interactions)
+        messages = [
+            {"role": "user", "content": user_cmd} if i % 2 == 0 else {"role": "assistant", "content": resp}
+            for i, (user_cmd, resp) in enumerate(conversation_memory[-10:])
+        ]
+        messages.append({"role": "user", "content": command})
+
+        try:
+            response_obj = client.chat.completions.create(
+                model="gpt-4o-mini",  # modern GPT model
+                messages=messages,
+                max_tokens=200
+            )
+            # Access message content correctly (v1.0+)
+            response = response_obj.choices[0].message["content"]
+        except Exception as e:
+            response = f"❌ Jarvis AI: Error processing command: {str(e)}"
+
+        remember(command, response)
+        return response

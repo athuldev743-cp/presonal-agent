@@ -1,11 +1,6 @@
-speechrecognition
-pyttsx3
-wikipedia
-faiss-cpu
-langchain
+fastapi
+uvicorn
 openai
-python-dotenv
-ollama
-pyaudio
 requests
-uvicorn[standard]
+beautifulsoup4
+python-dotenv
