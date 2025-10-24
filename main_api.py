@@ -4,29 +4,34 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from agent import process_command
 
-app = FastAPI()
+app = FastAPI(title="Jarvis AI API")
 
-# Allow CORS for frontend (adjust origins as needed)
+# === CORS Configuration ===
 origins = [
-    "https://personal-ai-front.vercel.app/"
-    "http://127.0.0.1:5500",  # VS Code Live Server
-    "http://localhost:5500",
-    "*"  # Allow all for testing
+    "https://personal-ai-front.vercel.app",  # Your frontend URL
+    "http://127.0.0.1:5500",                 # VS Code Live Server
+    "http://localhost:5500"                  # Local testing
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins,      # Only allow these origins in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# === Request Model ===
 class Command(BaseModel):
     text: str
 
+# === API Endpoints ===
 @app.post("/ask")
-def ask_jarvis(cmd: Command):
+async def ask_jarvis(cmd: Command):
+    """
+    Receive a command from the frontend, process it using agent.py,
+    and return the response.
+    """
     try:
         response = process_command(cmd.text)
     except Exception as e:
@@ -34,5 +39,5 @@ def ask_jarvis(cmd: Command):
     return {"response": response}
 
 @app.get("/")
-def root():
+async def root():
     return {"message": "Jarvis AI API is running!"}
