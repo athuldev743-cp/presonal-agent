@@ -35,7 +35,7 @@ def process_command(command: str):
         return "I was created by Mr. Athul Dev, my brilliant creator and mentor."
 
     elif "who are you" in cmd or "what is your name" in cmd:
-        return "I am JARVIS, your personal AI assistant created by Mr. Athul Dev."
+        return "I am JARVIS,  personal AI assistant created by Mr. Athul Dev."
 
     elif "your purpose" in cmd or "what can you do" in cmd:
         return "My purpose is to assist you with calculations, web searches, health monitoring, weather information, and general tasks to make your life easier."
