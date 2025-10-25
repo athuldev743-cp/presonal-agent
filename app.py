@@ -1,4 +1,4 @@
-# app.py - ULTRA SIMPLE
+# app.py - RENDER AUTO-DETECTS THIS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,8 +14,12 @@ app.add_middleware(
 
 @app.get("/")
 def home():
-    return {"message": "✅ JARVIS BACKEND WORKING!"}
+    return {"message": "🎉 JARVIS BACKEND IS WORKING!"}
+
+@app.get("/test")
+def test():
+    return {"status": "success", "message": "API is fully operational"}
 
 @app.post("/ask")
 def ask():
-    return {"response": "I'm alive! 🎉"}
+    return {"response": "Hello! I'm JARVIS and ready to assist you!"}
