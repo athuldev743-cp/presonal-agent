@@ -1,6 +1,7 @@
-# agent.py - MINIMAL WORKING VERSION
+# agent.py - GUARANTEED WORKING
 import os
 from dotenv import load_dotenv
+import openai
 
 # Load environment variables
 load_dotenv()
@@ -9,9 +10,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OpenAI API key not found in environment variables")
 
-# Initialize OpenAI
-from openai import OpenAI
-client = OpenAI(api_key=OPENAI_API_KEY)
+# Set OpenAI API key (old-style for v0.28.1)
+openai.api_key = OPENAI_API_KEY
 
 # Simple memory system
 conversation_memory = []
@@ -61,14 +61,15 @@ def process_command(command: str):
         # Add system message
         messages.insert(0, {
             "role": "system", 
-            "content": "You are JARVIS, a helpful AI assistant created by Athul Dev. Be concise, professional, and helpful. Keep responses under 200 characters."
+            "content": "You are JARVIS, a helpful AI assistant created by Athul Dev. Be concise, professional, and helpful. Keep responses brief."
         })
         
         # Add current command
         messages.append({"role": "user", "content": command})
 
         try:
-            response_obj = client.chat.completions.create(
+            # Using old OpenAI API format for v0.28.1
+            response_obj = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
                 max_tokens=150,
@@ -76,7 +77,7 @@ def process_command(command: str):
             )
             response = response_obj.choices[0].message.content
 
-            # Clean response for consistency
+            # Clean response
             response = response.replace("**", "").replace("__", "")
             response = ' '.join(response.split())
             
