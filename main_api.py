@@ -1,4 +1,4 @@
-# main_api.py - GUARANTEED WORKING
+# main_api.py - UPDATED CORS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -6,19 +6,22 @@ from agent import process_command
 
 app = FastAPI(title="Jarvis AI API")
 
-# CORS Configuration
+# === CORS Configuration ===
 origins = [
     "https://personal-ai-front.vercel.app",
+    "https://personal-ai-front.vercel.app/",  # Add with trailing slash
     "http://127.0.0.1:5500",
     "http://localhost:5500",
-    "*"  # For testing
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "*"  # Allow all for testing (remove in production)
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -51,3 +54,8 @@ async def ask_jarvis(cmd: Command):
         return {"response": response}
     except Exception as e:
         return {"response": f"Error: {str(e)}"}
+
+# Add OPTIONS handler for CORS preflight
+@app.options("/ask")
+async def options_ask():
+    return {"message": "OK"}
