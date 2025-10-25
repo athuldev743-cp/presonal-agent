@@ -37,6 +37,20 @@ async def ask_jarvis(cmd: Command):
         response = f"❌ Jarvis AI: Error processing command: {str(e)}"
     return {"response": response}
 
-@app.get("/")
-async def root():
-    return {"message": "Jarvis AI API is running!"}
+@app.get("/test")
+async def test_jarvis():
+    """
+    Test if Jarvis is working
+    """
+    try:
+        test_response = process_command("Hello, who are you?")
+        return {
+            "status": "success", 
+            "message": "Jarvis is working!",
+            "test_response": test_response
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Jarvis test failed: {str(e)}"
+        }
