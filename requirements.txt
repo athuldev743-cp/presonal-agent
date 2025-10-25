@@ -1,8 +1,8 @@
-# requirements.txt - GUARANTEED WORKING
-fastapi==0.104.1
-uvicorn==0.24.0
+# requirements.txt - EXACT WORKING VERSIONS
+fastapi==0.115.0
+uvicorn==0.30.1
 openai==0.28.1
-requests==2.31.0
-beautifulsoup4==4.12.2
-python-dotenv==1.0.0
+requests==2.32.3
+beautifulsoup4==4.12.3
+python-dotenv==1.0.1
 wikipedia==1.4.0
