@@ -6,29 +6,33 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from agent import process_command
 
-# Load environment variables
+# === Load environment variables ===
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 if not OPENAI_API_KEY:
     raise ValueError("OpenAI API key not found in environment variables")
 
 # === FastAPI app ===
 app = FastAPI(title="Jarvis AI API")
 
-# === PERMISSIVE CORS CONFIGURATION ===
-# This ensures any frontend can call your API
+# === CORS middleware ===
+# Allows frontend to communicate with backend without errors
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # Allow requests from any origin
+    allow_origins=["*"],          # You can replace "*" with your frontend URL for stricter security
     allow_credentials=True,
-    allow_methods=["*"],          # Allow all HTTP methods
-    allow_headers=["*"],          # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # === Request model ===
 class Command(BaseModel):
     text: str
+
+# === Root endpoint ===
+@app.get("/")
+async def root():
+    return {"message": "Jarvis AI API is running!"}
 
 # === Test endpoint ===
 @app.get("/test")
@@ -51,8 +55,3 @@ async def ask_jarvis(cmd: Command):
         return {"response": response}
     except Exception as e:
         return {"response": f"I encountered an error: {str(e)}"}
-
-# === Root endpoint ===
-@app.get("/")
-async def root():
-    return {"message": "Jarvis AI API is running!"}
